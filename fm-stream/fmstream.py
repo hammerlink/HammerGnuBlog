@@ -20,21 +20,17 @@ if __name__ == '__main__':
         except:
             print("Warning: failed to XInitThreads()")
 
-from PyQt5 import Qt
-from gnuradio import qtgui
-from gnuradio.filter import firdes
-import sip
-from gnuradio import analog
+from gnuradio import audio
 from gnuradio import blocks
-from gnuradio import filter
 from gnuradio import gr
+from gnuradio.filter import firdes
 from gnuradio.fft import window
 import sys
 import signal
+from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
-from gnuradio import soapy
 from gnuradio.qtgui import Range, RangeWidget
 from PyQt5 import QtCore
 
@@ -78,7 +74,7 @@ class fmstream(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.volume = volume = 1
+        self.volume = volume = 3
         self.volume_slider = volume_slider = volume
         self.samp_rate = samp_rate = 48000
 
@@ -88,61 +84,16 @@ class fmstream(gr.top_block, Qt.QWidget):
         self._volume_slider_range = Range(0, 10, 0.5, volume, 200)
         self._volume_slider_win = RangeWidget(self._volume_slider_range, self.set_volume_slider, "Volume", "counter_slider", float, QtCore.Qt.Horizontal)
         self.top_layout.addWidget(self._volume_slider_win)
-        self.soapy_hackrf_sink_0 = None
-        dev = 'driver=hackrf'
-        stream_args = ''
-        tune_args = ['']
-        settings = ['']
-
-        self.soapy_hackrf_sink_0 = soapy.sink(dev, "fc32", 1, '',
-                                  stream_args, tune_args, settings)
-        self.soapy_hackrf_sink_0.set_sample_rate(0, 4e6)
-        self.soapy_hackrf_sink_0.set_bandwidth(0, 0)
-        self.soapy_hackrf_sink_0.set_frequency(0, 99.8e6)
-        self.soapy_hackrf_sink_0.set_gain(0, 'AMP', False)
-        self.soapy_hackrf_sink_0.set_gain(0, 'VGA', min(max(16, 0.0), 47.0))
-        self.rational_resampler_xxx_0 = filter.rational_resampler_ccc(
-                interpolation=4000,
-                decimation=48,
-                taps=[],
-                fractional_bw=0)
-        self.qtgui_sink_x_0 = qtgui.sink_c(
-            1024, #fftsize
-            window.WIN_BLACKMAN_hARRIS, #wintype
-            0, #fc
-            samp_rate, #bw
-            "", #name
-            True, #plotfreq
-            True, #plotwaterfall
-            True, #plottime
-            True, #plotconst
-            None # parent
-        )
-        self.qtgui_sink_x_0.set_update_time(1.0/10)
-        self._qtgui_sink_x_0_win = sip.wrapinstance(self.qtgui_sink_x_0.qwidget(), Qt.QWidget)
-
-        self.qtgui_sink_x_0.enable_rf_freq(False)
-
-        self.top_layout.addWidget(self._qtgui_sink_x_0_win)
         self.blocks_wavfile_source_0 = blocks.wavfile_source('/home/hendrik/Projects/radio/fm-stream/zitti-e-buoni.wav', True)
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(volume)
-        self.analog_wfm_tx_0 = analog.wfm_tx(
-        	audio_rate=samp_rate,
-        	quad_rate=samp_rate,
-        	tau=75e-6,
-        	max_dev=5e3,
-        	fh=-1.0,
-        )
+        self.blocks_multiply_const_vxx_0_0 = blocks.multiply_const_ff(volume)
+        self.audio_sink_0 = audio.sink(samp_rate, '', True)
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_wfm_tx_0, 0), (self.qtgui_sink_x_0, 0))
-        self.connect((self.analog_wfm_tx_0, 0), (self.rational_resampler_xxx_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.analog_wfm_tx_0, 0))
-        self.connect((self.blocks_wavfile_source_0, 0), (self.blocks_multiply_const_vxx_0, 0))
-        self.connect((self.rational_resampler_xxx_0, 0), (self.soapy_hackrf_sink_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.audio_sink_0, 0))
+        self.connect((self.blocks_wavfile_source_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))
 
 
     def closeEvent(self, event):
@@ -159,7 +110,7 @@ class fmstream(gr.top_block, Qt.QWidget):
     def set_volume(self, volume):
         self.volume = volume
         self.set_volume_slider(self.volume)
-        self.blocks_multiply_const_vxx_0.set_k(self.volume)
+        self.blocks_multiply_const_vxx_0_0.set_k(self.volume)
 
     def get_volume_slider(self):
         return self.volume_slider
@@ -172,7 +123,6 @@ class fmstream(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
 
 
 

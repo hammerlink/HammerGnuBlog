@@ -49,12 +49,12 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '1'
+    value: '3'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [288, 12.0]
+    coordinate: [296, 12.0]
     rotation: 0
     state: true
 - name: volume_slider
@@ -75,7 +75,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [376, 12.0]
+    coordinate: [384, 12.0]
     rotation: 0
     state: true
 - name: analog_nbfm_tx_0
@@ -95,7 +95,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [592, 220.0]
+    coordinate: [696, 156.0]
     rotation: 0
     state: disabled
 - name: analog_wfm_tx_0
@@ -109,16 +109,33 @@ blocks:
     max_dev: 5e3
     maxoutbuf: '0'
     minoutbuf: '0'
-    quad_rate: samp_rate
+    quad_rate: samp_rate * 4
     tau: 75e-6
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 396.0]
+    coordinate: [864, 316.0]
     rotation: 0
-    state: enabled
-- name: blocks_multiply_const_vxx_0
+    state: disabled
+- name: audio_sink_0
+  id: audio_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    device_name: ''
+    num_inputs: '1'
+    ok_to_block: 'True'
+    samp_rate: samp_rate
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [816, 428.0]
+    rotation: 0
+    state: true
+- name: blocks_multiply_const_vxx_0_0_0
   id: blocks_multiply_const_vxx
   parameters:
     affinity: ''
@@ -127,13 +144,31 @@ blocks:
     const: volume
     maxoutbuf: '0'
     minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1024, 188.0]
+    rotation: 0
+    state: disabled
+- name: blocks_multiply_xx_1
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
     type: float
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [320, 428.0]
+    coordinate: [408, 480.0]
     rotation: 0
     state: true
 - name: blocks_wavfile_source_0
@@ -151,9 +186,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [48, 420.0]
+    coordinate: [56, 476.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: qtgui_sink_x_0
   id: qtgui_sink_x
   parameters:
@@ -180,9 +215,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [992, 396.0]
+    coordinate: [1152, 356.0]
     rotation: 0
-    state: true
+    state: disabled
 - name: rational_resampler_xxx_0
   id: rational_resampler_xxx
   parameters:
@@ -200,9 +235,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [984, 180.0]
+    coordinate: [1216, 164.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: soapy_hackrf_sink_0
   id: soapy_hackrf_sink
   parameters:
@@ -220,18 +255,20 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1248, 208.0]
+    coordinate: [1456, 192.0]
     rotation: 0
-    state: true
+    state: disabled
 
 connections:
+- [analog_nbfm_tx_0, '0', blocks_multiply_const_vxx_0_0_0, '0']
 - [analog_nbfm_tx_0, '0', qtgui_sink_x_0, '0']
-- [analog_nbfm_tx_0, '0', rational_resampler_xxx_0, '0']
-- [analog_wfm_tx_0, '0', qtgui_sink_x_0, '0']
 - [analog_wfm_tx_0, '0', rational_resampler_xxx_0, '0']
-- [blocks_multiply_const_vxx_0, '0', analog_nbfm_tx_0, '0']
-- [blocks_multiply_const_vxx_0, '0', analog_wfm_tx_0, '0']
-- [blocks_wavfile_source_0, '0', blocks_multiply_const_vxx_0, '0']
+- [blocks_multiply_const_vxx_0_0_0, '0', rational_resampler_xxx_0, '0']
+- [blocks_multiply_xx_1, '0', audio_sink_0, '0']
+- [blocks_wavfile_source_0, '0', analog_nbfm_tx_0, '0']
+- [blocks_wavfile_source_0, '0', analog_wfm_tx_0, '0']
+- [blocks_wavfile_source_0, '0', blocks_multiply_xx_1, '0']
+- [rational_resampler_xxx_0, '0', qtgui_sink_x_0, '0']
 - [rational_resampler_xxx_0, '0', soapy_hackrf_sink_0, '0']
 
 metadata:
