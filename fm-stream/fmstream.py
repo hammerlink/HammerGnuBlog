@@ -20,19 +20,23 @@ if __name__ == '__main__':
         except:
             print("Warning: failed to XInitThreads()")
 
+from PyQt5 import Qt
+from gnuradio import qtgui
+from gnuradio.filter import firdes
+import sip
+from gnuradio import analog
 from gnuradio import audio
 from gnuradio import blocks
 from gnuradio import gr
-from gnuradio.filter import firdes
 from gnuradio.fft import window
 import sys
 import signal
-from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio.qtgui import Range, RangeWidget
 from PyQt5 import QtCore
+import configparser
 
 
 
@@ -74,9 +78,15 @@ class fmstream(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.volume = volume = 3
+        self.volume = volume = 1
         self.volume_slider = volume_slider = volume
+        self._variable_config_0_config = configparser.ConfigParser()
+        self._variable_config_0_config.read('default')
+        try: variable_config_0 = self._variable_config_0_config.get('main', 'key')
+        except: variable_config_0 = 'recording_2023_07_29.wav'
+        self.variable_config_0 = variable_config_0
         self.samp_rate = samp_rate = 48000
+        self.file_name = file_name = "recording_2023_0_29.wav"
 
         ##################################################
         # Blocks
@@ -84,16 +94,43 @@ class fmstream(gr.top_block, Qt.QWidget):
         self._volume_slider_range = Range(0, 10, 0.5, volume, 200)
         self._volume_slider_win = RangeWidget(self._volume_slider_range, self.set_volume_slider, "Volume", "counter_slider", float, QtCore.Qt.Horizontal)
         self.top_layout.addWidget(self._volume_slider_win)
-        self.blocks_wavfile_source_0 = blocks.wavfile_source('/home/hendrik/Projects/radio/fm-stream/zitti-e-buoni.wav', True)
-        self.blocks_multiply_const_vxx_0_0 = blocks.multiply_const_ff(volume)
+        self.qtgui_sink_x_0 = qtgui.sink_c(
+            1024, #fftsize
+            window.WIN_BLACKMAN_hARRIS, #wintype
+            0, #fc
+            samp_rate, #bw
+            "", #name
+            True, #plotfreq
+            True, #plotwaterfall
+            True, #plottime
+            True, #plotconst
+            None # parent
+        )
+        self.qtgui_sink_x_0.set_update_time(1.0/10)
+        self._qtgui_sink_x_0_win = sip.wrapinstance(self.qtgui_sink_x_0.qwidget(), Qt.QWidget)
+
+        self.qtgui_sink_x_0.enable_rf_freq(False)
+
+        self.top_layout.addWidget(self._qtgui_sink_x_0_win)
+        self.blocks_wavfile_source_1 = blocks.wavfile_source('/home/hendrik/Projects/radio/fm-stream/zitti-e-buoni.wav', True)
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(volume_slider)
         self.audio_sink_0 = audio.sink(samp_rate, '', True)
+        self.analog_nbfm_tx_0 = analog.nbfm_tx(
+        	audio_rate=samp_rate,
+        	quad_rate=samp_rate,
+        	tau=75e-6,
+        	max_dev=5e3,
+        	fh=-1.0,
+                )
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.audio_sink_0, 0))
-        self.connect((self.blocks_wavfile_source_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))
+        self.connect((self.analog_nbfm_tx_0, 0), (self.qtgui_sink_x_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.analog_nbfm_tx_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.audio_sink_0, 0))
+        self.connect((self.blocks_wavfile_source_1, 0), (self.blocks_multiply_const_vxx_0, 0))
 
 
     def closeEvent(self, event):
@@ -110,19 +147,32 @@ class fmstream(gr.top_block, Qt.QWidget):
     def set_volume(self, volume):
         self.volume = volume
         self.set_volume_slider(self.volume)
-        self.blocks_multiply_const_vxx_0_0.set_k(self.volume)
 
     def get_volume_slider(self):
         return self.volume_slider
 
     def set_volume_slider(self, volume_slider):
         self.volume_slider = volume_slider
+        self.blocks_multiply_const_vxx_0.set_k(self.volume_slider)
+
+    def get_variable_config_0(self):
+        return self.variable_config_0
+
+    def set_variable_config_0(self, variable_config_0):
+        self.variable_config_0 = variable_config_0
 
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
+        self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
+
+    def get_file_name(self):
+        return self.file_name
+
+    def set_file_name(self, file_name):
+        self.file_name = file_name
 
 
 

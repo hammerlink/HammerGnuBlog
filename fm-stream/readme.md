@@ -36,3 +36,10 @@ https://wiki.gnuradio.org/index.php/Simulation_example:_AM_transmitter_and_recei
 
 The issue might be that the WAV files cannot use a multiply const since the values are fixed?
 To investigate
+
+After consulting ChatGPT it suggested that I should check the FM transmittion strength.
+
+Or the format of the WAV signal could be bad. It might be intresting to record my own WAV file to check this out.
+
+I discovered the mistake. I was using the wrong variable ID in the multiply const block. Therefor the volume never changed.
+You need to use the ID of the QT GUI Range slider instead of the variable name. Silly mistake.

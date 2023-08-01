@@ -33,6 +33,18 @@ options:
     state: enabled
 
 blocks:
+- name: file_name
+  id: variable
+  parameters:
+    comment: ''
+    value: '"recording_2023_0_29.wav"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [552, 12.0]
+    rotation: 0
+    state: true
 - name: samp_rate
   id: variable
   parameters:
@@ -45,11 +57,28 @@ blocks:
     coordinate: [184, 12]
     rotation: 0
     state: enabled
+- name: variable_config_0
+  id: variable_config
+  parameters:
+    comment: ''
+    config_file: default
+    option: key
+    section: main
+    type: string
+    value: recording_2023_07_29.wav
+    writeback: None
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [744, 4.0]
+    rotation: 0
+    state: true
 - name: volume
   id: variable
   parameters:
     comment: ''
-    value: '3'
+    value: '1'
   states:
     bus_sink: false
     bus_source: false
@@ -95,9 +124,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [696, 156.0]
+    coordinate: [680, 276.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: analog_wfm_tx_0
   id: analog_wfm_tx
   parameters:
@@ -115,7 +144,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [864, 316.0]
+    coordinate: [632, 556.0]
     rotation: 0
     state: disabled
 - name: audio_sink_0
@@ -132,45 +161,90 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [816, 428.0]
+    coordinate: [704, 436.0]
     rotation: 0
-    state: true
-- name: blocks_multiply_const_vxx_0_0_0
-  id: blocks_multiply_const_vxx
+    state: enabled
+- name: audio_source_0
+  id: audio_source
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    const: volume
+    device_name: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    type: complex
-    vlen: '1'
+    num_outputs: '1'
+    ok_to_block: 'True'
+    samp_rate: samp_rate
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1024, 188.0]
+    coordinate: [56, 180.0]
     rotation: 0
     state: disabled
-- name: blocks_multiply_xx_1
-  id: blocks_multiply_xx
+- name: blocks_file_source_0
+  id: blocks_file_source
   parameters:
     affinity: ''
     alias: ''
+    begin_tag: pmt.PMT_NIL
     comment: ''
+    file: /home/hendrik/Projects/radio/fm-stream/non-wav-recording.data
+    length: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
-    num_inputs: '2'
+    offset: '0'
+    repeat: 'True'
     type: float
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [408, 480.0]
+    coordinate: [40, 444.0]
+    rotation: 0
+    state: disabled
+- name: blocks_multiply_const_vxx_0
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: volume_slider
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [400, 316.0]
     rotation: 0
     state: true
+- name: blocks_wavfile_sink_0
+  id: blocks_wavfile_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'False'
+    bits_per_sample1: FORMAT_PCM_16
+    bits_per_sample2: FORMAT_PCM_16
+    bits_per_sample3: FORMAT_VORBIS
+    bits_per_sample4: FORMAT_PCM_16
+    comment: ''
+    file: recording_2023_07_29.wav
+    format: FORMAT_WAV
+    nchan: '1'
+    samp_rate: samp_rate
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [408, 148.0]
+    rotation: 0
+    state: disabled
 - name: blocks_wavfile_source_0
   id: blocks_wavfile_source
   parameters:
@@ -186,7 +260,25 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [56, 476.0]
+    coordinate: [80, 596.0]
+    rotation: 0
+    state: disabled
+- name: blocks_wavfile_source_1
+  id: blocks_wavfile_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    file: /home/hendrik/Projects/radio/fm-stream/zitti-e-buoni.wav
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nchan: '1'
+    repeat: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [24, 348.0]
     rotation: 0
     state: enabled
 - name: qtgui_sink_x_0
@@ -217,7 +309,7 @@ blocks:
     bus_structure: null
     coordinate: [1152, 356.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: rational_resampler_xxx_0
   id: rational_resampler_xxx
   parameters:
@@ -235,7 +327,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1216, 164.0]
+    coordinate: [1080, 140.0]
     rotation: 0
     state: disabled
 - name: soapy_hackrf_sink_0
@@ -255,20 +347,22 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1456, 192.0]
+    coordinate: [1328, 168.0]
     rotation: 0
     state: disabled
 
 connections:
-- [analog_nbfm_tx_0, '0', blocks_multiply_const_vxx_0_0_0, '0']
 - [analog_nbfm_tx_0, '0', qtgui_sink_x_0, '0']
+- [analog_nbfm_tx_0, '0', rational_resampler_xxx_0, '0']
 - [analog_wfm_tx_0, '0', rational_resampler_xxx_0, '0']
-- [blocks_multiply_const_vxx_0_0_0, '0', rational_resampler_xxx_0, '0']
-- [blocks_multiply_xx_1, '0', audio_sink_0, '0']
+- [audio_source_0, '0', blocks_wavfile_sink_0, '0']
+- [blocks_file_source_0, '0', blocks_multiply_const_vxx_0, '0']
+- [blocks_multiply_const_vxx_0, '0', analog_nbfm_tx_0, '0']
+- [blocks_multiply_const_vxx_0, '0', audio_sink_0, '0']
 - [blocks_wavfile_source_0, '0', analog_nbfm_tx_0, '0']
 - [blocks_wavfile_source_0, '0', analog_wfm_tx_0, '0']
-- [blocks_wavfile_source_0, '0', blocks_multiply_xx_1, '0']
-- [rational_resampler_xxx_0, '0', qtgui_sink_x_0, '0']
+- [blocks_wavfile_source_0, '0', audio_sink_0, '0']
+- [blocks_wavfile_source_1, '0', blocks_multiply_const_vxx_0, '0']
 - [rational_resampler_xxx_0, '0', soapy_hackrf_sink_0, '0']
 
 metadata:
