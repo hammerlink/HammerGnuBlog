@@ -27,6 +27,7 @@ import sip
 from gnuradio import analog
 from gnuradio import audio
 from gnuradio import blocks
+from gnuradio import filter
 from gnuradio import gr
 from gnuradio.fft import window
 import sys
@@ -34,9 +35,9 @@ import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
+from gnuradio import soapy
 from gnuradio.qtgui import Range, RangeWidget
 from PyQt5 import QtCore
-import configparser
 
 
 
@@ -80,13 +81,7 @@ class fmstream(gr.top_block, Qt.QWidget):
         ##################################################
         self.volume = volume = 1
         self.volume_slider = volume_slider = volume
-        self._variable_config_0_config = configparser.ConfigParser()
-        self._variable_config_0_config.read('default')
-        try: variable_config_0 = self._variable_config_0_config.get('main', 'key')
-        except: variable_config_0 = 'recording_2023_07_29.wav'
-        self.variable_config_0 = variable_config_0
         self.samp_rate = samp_rate = 48000
-        self.file_name = file_name = "recording_2023_0_29.wav"
 
         ##################################################
         # Blocks
@@ -94,6 +89,24 @@ class fmstream(gr.top_block, Qt.QWidget):
         self._volume_slider_range = Range(0, 10, 0.5, volume, 200)
         self._volume_slider_win = RangeWidget(self._volume_slider_range, self.set_volume_slider, "Volume", "counter_slider", float, QtCore.Qt.Horizontal)
         self.top_layout.addWidget(self._volume_slider_win)
+        self.soapy_hackrf_sink_0 = None
+        dev = 'driver=hackrf'
+        stream_args = ''
+        tune_args = ['']
+        settings = ['']
+
+        self.soapy_hackrf_sink_0 = soapy.sink(dev, "fc32", 1, '',
+                                  stream_args, tune_args, settings)
+        self.soapy_hackrf_sink_0.set_sample_rate(0, 4e6)
+        self.soapy_hackrf_sink_0.set_bandwidth(0, 0)
+        self.soapy_hackrf_sink_0.set_frequency(0, 99.8e6)
+        self.soapy_hackrf_sink_0.set_gain(0, 'AMP', False)
+        self.soapy_hackrf_sink_0.set_gain(0, 'VGA', min(max(16, 0.0), 47.0))
+        self.rational_resampler_xxx_0 = filter.rational_resampler_ccc(
+                interpolation=4000,
+                decimation=48,
+                taps=[],
+                fractional_bw=0)
         self.qtgui_sink_x_0 = qtgui.sink_c(
             1024, #fftsize
             window.WIN_BLACKMAN_hARRIS, #wintype
@@ -128,9 +141,11 @@ class fmstream(gr.top_block, Qt.QWidget):
         # Connections
         ##################################################
         self.connect((self.analog_nbfm_tx_0, 0), (self.qtgui_sink_x_0, 0))
+        self.connect((self.analog_nbfm_tx_0, 0), (self.rational_resampler_xxx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.analog_nbfm_tx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.audio_sink_0, 0))
         self.connect((self.blocks_wavfile_source_1, 0), (self.blocks_multiply_const_vxx_0, 0))
+        self.connect((self.rational_resampler_xxx_0, 0), (self.soapy_hackrf_sink_0, 0))
 
 
     def closeEvent(self, event):
@@ -155,24 +170,12 @@ class fmstream(gr.top_block, Qt.QWidget):
         self.volume_slider = volume_slider
         self.blocks_multiply_const_vxx_0.set_k(self.volume_slider)
 
-    def get_variable_config_0(self):
-        return self.variable_config_0
-
-    def set_variable_config_0(self, variable_config_0):
-        self.variable_config_0 = variable_config_0
-
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.qtgui_sink_x_0.set_frequency_range(0, self.samp_rate)
-
-    def get_file_name(self):
-        return self.file_name
-
-    def set_file_name(self, file_name):
-        self.file_name = file_name
 
 
 

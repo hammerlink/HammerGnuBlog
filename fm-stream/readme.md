@@ -1,6 +1,7 @@
 # Next goal
 
 - detect the distance to the radio transmitter
+- transmit with dab+ protocol
 
 # Walkthrough
 ## Soapy HackRF block sampling issue
@@ -43,3 +44,9 @@ Or the format of the WAV signal could be bad. It might be intresting to record m
 
 I discovered the mistake. I was using the wrong variable ID in the multiply const block. Therefor the volume never changed.
 You need to use the ID of the QT GUI Range slider instead of the variable name. Silly mistake.
+
+In mean time I also discovered that you can record data into a regular file. Capturing all the samples in raw state.
+The WAV file format is more compressed, containing the same data.
+
+### Test
+Low volume test executed successfully
