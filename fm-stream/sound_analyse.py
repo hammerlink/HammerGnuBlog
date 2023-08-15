@@ -5,8 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0
 #
 # GNU Radio Python Flow Graph
-# Title: Sound distance
-# Author: Hendrik Hamerlinck
+# Title: Not titled yet
 # GNU Radio version: 3.10.1.1
 
 from packaging.version import Version as StrictVersion
@@ -36,17 +35,19 @@ import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
+from gnuradio.qtgui import Range, RangeWidget
+from PyQt5 import QtCore
 
 
 
 from gnuradio import qtgui
 
-class sound_distance(gr.top_block, Qt.QWidget):
+class sound_analyse(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Sound distance", catch_exceptions=True)
+        gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("Sound distance")
+        self.setWindowTitle("Not titled yet")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -64,7 +65,7 @@ class sound_distance(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "sound_distance")
+        self.settings = Qt.QSettings("GNU Radio", "sound_analyse")
 
         try:
             if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
@@ -77,82 +78,76 @@ class sound_distance(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 60000
-        self.bandFilter = bandFilter = firdes.band_pass(1.0, samp_rate, 499, 501, 1, window.WIN_HAMMING, 6.76)
+        self.samp_rate = samp_rate = 32000
+        self.signal_volume = signal_volume = 1
+        self.mute_box = mute_box = False
+        self.low_pass_495 = low_pass_495 = firdes.low_pass(1.0, samp_rate, 505,10, window.WIN_HAMMING, 6.76)
+        self.high_pass_495 = high_pass_495 = firdes.high_pass(1.0, samp_rate, 495,10, window.WIN_HAMMING, 6.76)
 
         ##################################################
         # Blocks
         ##################################################
-        self.qtgui_time_sink_x_1 = qtgui.time_sink_f(
-            1024, #size
-            samp_rate, #samp_rate
+        self._signal_volume_range = Range(0, 1, 0.1, 1, 200)
+        self._signal_volume_win = RangeWidget(self._signal_volume_range, self.set_signal_volume, "Signal Volume", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.top_layout.addWidget(self._signal_volume_win)
+        self.qtgui_waterfall_sink_x_0 = qtgui.waterfall_sink_f(
+            16384, #size
+            window.WIN_BLACKMAN_hARRIS, #wintype
+            0, #fc
+            samp_rate, #bw
             "", #name
-            1, #number of inputs
+            2, #number of inputs
             None # parent
         )
-        self.qtgui_time_sink_x_1.set_update_time(0.10)
-        self.qtgui_time_sink_x_1.set_y_axis(-1, 1)
-
-        self.qtgui_time_sink_x_1.set_y_label('Amplitude', "")
-
-        self.qtgui_time_sink_x_1.enable_tags(True)
-        self.qtgui_time_sink_x_1.set_trigger_mode(qtgui.TRIG_MODE_FREE, qtgui.TRIG_SLOPE_POS, 0.0, 0, 0, "")
-        self.qtgui_time_sink_x_1.enable_autoscale(True)
-        self.qtgui_time_sink_x_1.enable_grid(False)
-        self.qtgui_time_sink_x_1.enable_axis_labels(True)
-        self.qtgui_time_sink_x_1.enable_control_panel(False)
-        self.qtgui_time_sink_x_1.enable_stem_plot(False)
+        self.qtgui_waterfall_sink_x_0.set_update_time(0.10)
+        self.qtgui_waterfall_sink_x_0.enable_grid(False)
+        self.qtgui_waterfall_sink_x_0.enable_axis_labels(True)
 
 
-        labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Signal 4', 'Signal 5',
-            'Signal 6', 'Signal 7', 'Signal 8', 'Signal 9', 'Signal 10']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ['blue', 'red', 'green', 'black', 'cyan',
-            'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+        self.qtgui_waterfall_sink_x_0.set_plot_pos_half(not False)
+
+        labels = ['', '', '', '', '',
+                  '', '', '', '', '']
+        colors = [0, 0, 0, 0, 0,
+                  0, 0, 0, 0, 0]
         alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-        styles = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        markers = [-1, -1, -1, -1, -1,
-            -1, -1, -1, -1, -1]
+                  1.0, 1.0, 1.0, 1.0, 1.0]
 
-
-        for i in range(1):
+        for i in range(2):
             if len(labels[i]) == 0:
-                self.qtgui_time_sink_x_1.set_line_label(i, "Data {0}".format(i))
+                self.qtgui_waterfall_sink_x_0.set_line_label(i, "Data {0}".format(i))
             else:
-                self.qtgui_time_sink_x_1.set_line_label(i, labels[i])
-            self.qtgui_time_sink_x_1.set_line_width(i, widths[i])
-            self.qtgui_time_sink_x_1.set_line_color(i, colors[i])
-            self.qtgui_time_sink_x_1.set_line_style(i, styles[i])
-            self.qtgui_time_sink_x_1.set_line_marker(i, markers[i])
-            self.qtgui_time_sink_x_1.set_line_alpha(i, alphas[i])
+                self.qtgui_waterfall_sink_x_0.set_line_label(i, labels[i])
+            self.qtgui_waterfall_sink_x_0.set_color_map(i, colors[i])
+            self.qtgui_waterfall_sink_x_0.set_line_alpha(i, alphas[i])
 
-        self._qtgui_time_sink_x_1_win = sip.wrapinstance(self.qtgui_time_sink_x_1.qwidget(), Qt.QWidget)
-        self.top_layout.addWidget(self._qtgui_time_sink_x_1_win)
+        self.qtgui_waterfall_sink_x_0.set_intensity_range(-140, 10)
+
+        self._qtgui_waterfall_sink_x_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0.qwidget(), Qt.QWidget)
+
+        self.top_layout.addWidget(self._qtgui_waterfall_sink_x_0_win)
         self.qtgui_freq_sink_x_0 = qtgui.freq_sink_f(
-            1024, #size
+            16384, #size
             window.WIN_BLACKMAN_hARRIS, #wintype
-            495, #fc
-            60, #bw
+            0, #fc
+            samp_rate, #bw
             "", #name
-            1,
+            2,
             None # parent
         )
         self.qtgui_freq_sink_x_0.set_update_time(0.10)
         self.qtgui_freq_sink_x_0.set_y_axis(-140, 10)
         self.qtgui_freq_sink_x_0.set_y_label('Relative Gain', 'dB')
         self.qtgui_freq_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
-        self.qtgui_freq_sink_x_0.enable_autoscale(False)
-        self.qtgui_freq_sink_x_0.enable_grid(False)
+        self.qtgui_freq_sink_x_0.enable_autoscale(True)
+        self.qtgui_freq_sink_x_0.enable_grid(True)
         self.qtgui_freq_sink_x_0.set_fft_average(1.0)
         self.qtgui_freq_sink_x_0.enable_axis_labels(True)
         self.qtgui_freq_sink_x_0.enable_control_panel(False)
         self.qtgui_freq_sink_x_0.set_fft_window_normalized(False)
 
 
-        self.qtgui_freq_sink_x_0.set_plot_pos_half(not True)
+        self.qtgui_freq_sink_x_0.set_plot_pos_half(not False)
 
         labels = ['', '', '', '', '',
             '', '', '', '', '']
@@ -163,7 +158,7 @@ class sound_distance(gr.top_block, Qt.QWidget):
         alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
             1.0, 1.0, 1.0, 1.0, 1.0]
 
-        for i in range(1):
+        for i in range(2):
             if len(labels[i]) == 0:
                 self.qtgui_freq_sink_x_0.set_line_label(i, "Data {0}".format(i))
             else:
@@ -174,19 +169,20 @@ class sound_distance(gr.top_block, Qt.QWidget):
 
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
+        _mute_box_check_box = Qt.QCheckBox("Mute sound")
+        self._mute_box_choices = {True: True, False: False}
+        self._mute_box_choices_inv = dict((v,k) for k,v in self._mute_box_choices.items())
+        self._mute_box_callback = lambda i: Qt.QMetaObject.invokeMethod(_mute_box_check_box, "setChecked", Qt.Q_ARG("bool", self._mute_box_choices_inv[i]))
+        self._mute_box_callback(self.mute_box)
+        _mute_box_check_box.stateChanged.connect(lambda i: self.set_mute_box(self._mute_box_choices[bool(i)]))
+        self.top_layout.addWidget(_mute_box_check_box)
+        self.fir_filter_xxx_0_0 = filter.fir_filter_fff(1, high_pass_495)
+        self.fir_filter_xxx_0_0.declare_sample_delay(0)
+        self.fir_filter_xxx_0 = filter.fir_filter_fff(1, low_pass_495)
+        self.fir_filter_xxx_0.declare_sample_delay(0)
         self.blocks_add_xx_0 = blocks.add_vff(1)
-        self.band_pass_filter_0 = filter.fir_filter_fff(
-            10,
-            firdes.band_pass(
-                1,
-                samp_rate,
-                498,
-                502,
-                1,
-                window.WIN_HAMMING,
-                6.76))
         self.audio_source_0 = audio.source(samp_rate, '', True)
-        self.analog_sig_source_x_0 = analog.sig_source_f(samp_rate, analog.GR_COS_WAVE, 500, 0.7, 0, 0)
+        self.analog_sig_source_x_0 = analog.sig_source_f(samp_rate, analog.GR_COS_WAVE, 500, signal_volume, 0, 0)
 
 
         ##################################################
@@ -194,13 +190,16 @@ class sound_distance(gr.top_block, Qt.QWidget):
         ##################################################
         self.connect((self.analog_sig_source_x_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.audio_source_0, 0), (self.blocks_add_xx_0, 0))
-        self.connect((self.band_pass_filter_0, 0), (self.qtgui_freq_sink_x_0, 0))
-        self.connect((self.band_pass_filter_0, 0), (self.qtgui_time_sink_x_1, 0))
-        self.connect((self.blocks_add_xx_0, 0), (self.band_pass_filter_0, 0))
+        self.connect((self.blocks_add_xx_0, 0), (self.fir_filter_xxx_0_0, 0))
+        self.connect((self.blocks_add_xx_0, 0), (self.qtgui_freq_sink_x_0, 0))
+        self.connect((self.blocks_add_xx_0, 0), (self.qtgui_waterfall_sink_x_0, 0))
+        self.connect((self.fir_filter_xxx_0, 0), (self.qtgui_freq_sink_x_0, 1))
+        self.connect((self.fir_filter_xxx_0, 0), (self.qtgui_waterfall_sink_x_0, 1))
+        self.connect((self.fir_filter_xxx_0_0, 0), (self.fir_filter_xxx_0, 0))
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "sound_distance")
+        self.settings = Qt.QSettings("GNU Radio", "sound_analyse")
         self.settings.setValue("geometry", self.saveGeometry())
         self.stop()
         self.wait()
@@ -212,21 +211,44 @@ class sound_distance(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.set_bandFilter(firdes.band_pass(1.0, self.samp_rate, 499, 501, 1, window.WIN_HAMMING, 6.76))
+        self.set_high_pass_495(firdes.high_pass(1.0, self.samp_rate, 495, 10, window.WIN_HAMMING, 6.76))
+        self.set_low_pass_495(firdes.low_pass(1.0, self.samp_rate, 505, 10, window.WIN_HAMMING, 6.76))
         self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
-        self.band_pass_filter_0.set_taps(firdes.band_pass(1, self.samp_rate, 498, 502, 1, window.WIN_HAMMING, 6.76))
-        self.qtgui_time_sink_x_1.set_samp_rate(self.samp_rate)
+        self.qtgui_freq_sink_x_0.set_frequency_range(0, self.samp_rate)
+        self.qtgui_waterfall_sink_x_0.set_frequency_range(0, self.samp_rate)
 
-    def get_bandFilter(self):
-        return self.bandFilter
+    def get_signal_volume(self):
+        return self.signal_volume
 
-    def set_bandFilter(self, bandFilter):
-        self.bandFilter = bandFilter
+    def set_signal_volume(self, signal_volume):
+        self.signal_volume = signal_volume
+        self.analog_sig_source_x_0.set_amplitude(self.signal_volume)
+
+    def get_mute_box(self):
+        return self.mute_box
+
+    def set_mute_box(self, mute_box):
+        self.mute_box = mute_box
+        self._mute_box_callback(self.mute_box)
+
+    def get_low_pass_495(self):
+        return self.low_pass_495
+
+    def set_low_pass_495(self, low_pass_495):
+        self.low_pass_495 = low_pass_495
+        self.fir_filter_xxx_0.set_taps(self.low_pass_495)
+
+    def get_high_pass_495(self):
+        return self.high_pass_495
+
+    def set_high_pass_495(self, high_pass_495):
+        self.high_pass_495 = high_pass_495
+        self.fir_filter_xxx_0_0.set_taps(self.high_pass_495)
 
 
 
 
-def main(top_block_cls=sound_distance, options=None):
+def main(top_block_cls=sound_analyse, options=None):
 
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
         style = gr.prefs().get_string('qtgui', 'style', 'raster')
