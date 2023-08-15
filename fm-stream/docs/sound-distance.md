@@ -40,3 +40,9 @@ I suppose this is mainly useful if you are analyzing signals that are only very 
 ### Filtering the produced sound
 
 Using a Low pass & high pass filter I managed to take out the 500 hz signal specifically
+
+### Converting the sound signal to a boolean value (0,1)
+
+By using a multiply by const -1 and a threshold block I created a digital value out of the flow. Hooray!!!
+
+Next step is transmitting this signal on to a messagebus, and receiving a date from gnuradio?

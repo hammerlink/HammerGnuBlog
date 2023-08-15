@@ -126,6 +126,72 @@ class sound_analyse(gr.top_block, Qt.QWidget):
         self._qtgui_waterfall_sink_x_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0.qwidget(), Qt.QWidget)
 
         self.top_layout.addWidget(self._qtgui_waterfall_sink_x_0_win)
+        self.qtgui_number_sink_1 = qtgui.number_sink(
+            gr.sizeof_float,
+            0,
+            qtgui.NUM_GRAPH_HORIZ,
+            1,
+            None # parent
+        )
+        self.qtgui_number_sink_1.set_update_time(0.10)
+        self.qtgui_number_sink_1.set_title("")
+
+        labels = ['', '', '', '', '',
+            '', '', '', '', '']
+        units = ['', '', '', '', '',
+            '', '', '', '', '']
+        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
+            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
+        factor = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+
+        for i in range(1):
+            self.qtgui_number_sink_1.set_min(i, -1)
+            self.qtgui_number_sink_1.set_max(i, 1)
+            self.qtgui_number_sink_1.set_color(i, colors[i][0], colors[i][1])
+            if len(labels[i]) == 0:
+                self.qtgui_number_sink_1.set_label(i, "Data {0}".format(i))
+            else:
+                self.qtgui_number_sink_1.set_label(i, labels[i])
+            self.qtgui_number_sink_1.set_unit(i, units[i])
+            self.qtgui_number_sink_1.set_factor(i, factor[i])
+
+        self.qtgui_number_sink_1.enable_autoscale(False)
+        self._qtgui_number_sink_1_win = sip.wrapinstance(self.qtgui_number_sink_1.qwidget(), Qt.QWidget)
+        self.top_layout.addWidget(self._qtgui_number_sink_1_win)
+        self.qtgui_number_sink_0 = qtgui.number_sink(
+            gr.sizeof_float,
+            0,
+            qtgui.NUM_GRAPH_HORIZ,
+            1,
+            None # parent
+        )
+        self.qtgui_number_sink_0.set_update_time(0.10)
+        self.qtgui_number_sink_0.set_title("")
+
+        labels = ['', '', '', '', '',
+            '', '', '', '', '']
+        units = ['', '', '', '', '',
+            '', '', '', '', '']
+        colors = [("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"),
+            ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black"), ("black", "black")]
+        factor = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+
+        for i in range(1):
+            self.qtgui_number_sink_0.set_min(i, -1)
+            self.qtgui_number_sink_0.set_max(i, 1)
+            self.qtgui_number_sink_0.set_color(i, colors[i][0], colors[i][1])
+            if len(labels[i]) == 0:
+                self.qtgui_number_sink_0.set_label(i, "Data {0}".format(i))
+            else:
+                self.qtgui_number_sink_0.set_label(i, labels[i])
+            self.qtgui_number_sink_0.set_unit(i, units[i])
+            self.qtgui_number_sink_0.set_factor(i, factor[i])
+
+        self.qtgui_number_sink_0.enable_autoscale(False)
+        self._qtgui_number_sink_0_win = sip.wrapinstance(self.qtgui_number_sink_0.qwidget(), Qt.QWidget)
+        self.top_layout.addWidget(self._qtgui_number_sink_0_win)
         self.qtgui_freq_sink_x_0 = qtgui.freq_sink_f(
             16384, #size
             window.WIN_BLACKMAN_hARRIS, #wintype
@@ -180,6 +246,8 @@ class sound_analyse(gr.top_block, Qt.QWidget):
         self.fir_filter_xxx_0_0.declare_sample_delay(0)
         self.fir_filter_xxx_0 = filter.fir_filter_fff(1, low_pass_495)
         self.fir_filter_xxx_0.declare_sample_delay(0)
+        self.blocks_threshold_ff_0 = blocks.threshold_ff(0, 0.5, 0)
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(-1)
         self.blocks_add_xx_0 = blocks.add_vff(1)
         self.audio_source_0 = audio.source(samp_rate, '', True)
         self.analog_sig_source_x_0 = analog.sig_source_f(samp_rate, analog.GR_COS_WAVE, 500, signal_volume, 0, 0)
@@ -193,7 +261,11 @@ class sound_analyse(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_add_xx_0, 0), (self.fir_filter_xxx_0_0, 0))
         self.connect((self.blocks_add_xx_0, 0), (self.qtgui_freq_sink_x_0, 0))
         self.connect((self.blocks_add_xx_0, 0), (self.qtgui_waterfall_sink_x_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_threshold_ff_0, 0))
+        self.connect((self.blocks_threshold_ff_0, 0), (self.qtgui_number_sink_1, 0))
+        self.connect((self.fir_filter_xxx_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.fir_filter_xxx_0, 0), (self.qtgui_freq_sink_x_0, 1))
+        self.connect((self.fir_filter_xxx_0, 0), (self.qtgui_number_sink_0, 0))
         self.connect((self.fir_filter_xxx_0, 0), (self.qtgui_waterfall_sink_x_0, 1))
         self.connect((self.fir_filter_xxx_0_0, 0), (self.fir_filter_xxx_0, 0))
 
