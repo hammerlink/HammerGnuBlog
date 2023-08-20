@@ -46,3 +46,13 @@ Using a Low pass & high pass filter I managed to take out the 500 hz signal spec
 By using a multiply by const -1 and a threshold block I created a digital value out of the flow. Hooray!!!
 
 Next step is transmitting this signal on to a messagebus, and receiving a date from gnuradio?
+I should also trigger an action each time the value changes.
+
+### Triggering an action upon change
+With the embedded Python block I managed to trigger an action upon changing the value.
+I also added a block to trigger a message on a messagebus. With this I could sent multiple messages of multiple microhpones.
+
+The only down side is that I noticed that the samples are delayed because of buffers etc.
+I would have to run localization code after the actions occured. I would need to get the correct datestamps of each trigger.
+
+=> I could also write a simple program that executes the 3 microhpones at the same time. And then analyze the primary microphone for certain patterns. If there is a hit it needs to check the data of the other 2 microphones.

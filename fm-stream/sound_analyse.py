@@ -37,6 +37,7 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio.qtgui import Range, RangeWidget
 from PyQt5 import QtCore
+import sound_analyse_epy_block_0 as epy_block_0  # embedded python block
 
 
 
@@ -246,6 +247,7 @@ class sound_analyse(gr.top_block, Qt.QWidget):
         self.fir_filter_xxx_0_0.declare_sample_delay(0)
         self.fir_filter_xxx_0 = filter.fir_filter_fff(1, low_pass_495)
         self.fir_filter_xxx_0.declare_sample_delay(0)
+        self.epy_block_0 = epy_block_0.blk(example_param=1.0)
         self.blocks_threshold_ff_0 = blocks.threshold_ff(0, 0.5, 0)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(-1)
         self.blocks_add_xx_0 = blocks.add_vff(1)
@@ -262,6 +264,7 @@ class sound_analyse(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_add_xx_0, 0), (self.qtgui_freq_sink_x_0, 0))
         self.connect((self.blocks_add_xx_0, 0), (self.qtgui_waterfall_sink_x_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_threshold_ff_0, 0))
+        self.connect((self.blocks_threshold_ff_0, 0), (self.epy_block_0, 0))
         self.connect((self.blocks_threshold_ff_0, 0), (self.qtgui_number_sink_1, 0))
         self.connect((self.fir_filter_xxx_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.fir_filter_xxx_0, 0), (self.qtgui_freq_sink_x_0, 1))
